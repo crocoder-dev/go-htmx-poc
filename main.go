@@ -4,7 +4,7 @@ import (
   "context"
 
   "github.com/labstack/echo/v4"
-  "github.com/htmx/htmx-go"
+  "github.com/donseba/go-htmx"
 )
 
 func HtmxMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
