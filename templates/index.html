@@ -1,17 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
+{{ template "layout.html" . }}
 
-<head>
-  <meta charset="UTF-8">
-  <title>Document</title>
-  <script src="https://unpkg.com/htmx.org@1.9.5"></script>
-</head>
+{{ define "title" }}Index{{ end }}
 
-<body>
-
-  <h1>hello world</h1>
-  <p>lorem</p>
-  <p>lorem</p>
-</body>
-
-</html>
+{{ define "body" }}
+  <div> SUP </div>
+  <h1>Index</h1>
+  <p>Go to <a href="/about">About</a></p>
+{{ end }}

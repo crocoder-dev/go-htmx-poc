@@ -9,7 +9,7 @@ curl -sSfL https://raw.githubusercontent.com/cosmtrek/air/master/install.sh | sh
 add to ~/.bashrc
 
 ```bash
-alias air='~/.air'
+alias air='$(go env GOPATH)/bin/air'
 ```
 
 run it with

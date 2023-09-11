@@ -34,6 +34,11 @@ func (a *App) Index(c echo.Context) error {
 	return c.Render(http.StatusOK, "index.html", a.state)
 }
 
+func (a *App) About(c echo.Context) error {
+  println("About")
+  return c.Render(http.StatusOK, "about.html", a.state)
+}
+
 func main() {
 	e := echo.New()
 	e.Use(echoMiddleware.Logger())
@@ -41,14 +46,14 @@ func main() {
 	e.Use(HtmxMiddleware)
 
 	app := &App{
-		appTemplates: new(Template),
+		appTemplates: NewTemplate("templates/*.html"),
     state: State{},
 	}
 
-	app.appTemplates.Add("templates/*.html")
-
 	e.Renderer = app.appTemplates
 
+  
+  e.GET("/about", app.About)
 	e.GET("/", app.Index)
 
 	e.Logger.Fatal(e.Start(":3000"))
