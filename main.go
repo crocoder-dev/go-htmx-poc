@@ -19,19 +19,30 @@ type App struct {
 	state State
 }
 
-func (a *App) Index(c echo.Context) error {
-  r := c.Request()
-  h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
-  println("HX-Boosted: ", h.HxBoosted)
-  println("HX-Current-URL: ", h.HxCurrentURL)
-  println("HX-History-Restore-Request: ", h.HxHistoryRestoreRequest)
-  println("HX-Prompt: ", h.HxPrompt)
-  println("HX-Request: ", h.HxRequest)
-  println("HX-Target: ", h.HxTarget)
-  println("HX-Trigger-Name: ", h.HxTriggerName)
-  println("HX-Trigger: ", h.HxTrigger)
+type Page struct {
+	Title string
+}
 
-	return c.Render(http.StatusOK, "index.html", a.state)
+func (a *App) Index(c echo.Context) error {
+	r := c.Request()
+	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
+
+	if h.HxBoosted == true {
+		return c.Render(http.StatusOK, "index", Page{Title: "Index Boost"})
+	}
+
+	return c.Render(http.StatusOK, "index.html", Page{Title: "Index"})
+}
+
+func (a *App) About(c echo.Context) error {
+	r := c.Request()
+	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
+
+	if h.HxBoosted == true {
+		return c.Render(http.StatusOK, "about", Page{Title: "About Boost"})
+	}
+
+	return c.Render(http.StatusOK, "about.html", Page{Title: "About"})
 }
 
 func main() {
@@ -42,7 +53,7 @@ func main() {
 
 	app := &App{
 		appTemplates: new(Template),
-    state: State{},
+		state:        State{},
 	}
 
 	app.appTemplates.Add("templates/*.html")
@@ -50,6 +61,7 @@ func main() {
 	e.Renderer = app.appTemplates
 
 	e.GET("/", app.Index)
+	e.GET("/about", app.About)
 
 	e.Logger.Fatal(e.Start(":3000"))
 }

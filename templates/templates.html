@@ -1,0 +1,14 @@
+{{ define "head" }}
+<head>
+  <meta charset="UTF-8">
+  <title>{{ .Title }}</title>
+  <script src="https://unpkg.com/htmx.org@1.9.5"></script>
+</head>
+{{ end }}
+
+{{ define "nav" }}
+<nav hx-boost="true" hx-target="main" hx-swap="innerHTML">
+  <a href="/">Home</a>
+  <a href="/about">About</a>
+</nav>
+{{ end }}
