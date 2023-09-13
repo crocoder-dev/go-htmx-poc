@@ -3,6 +3,9 @@
   <meta charset="UTF-8">
   <title>{{ .Title }}</title>
   <script src="https://unpkg.com/htmx.org@1.9.5"></script>
+  <script>
+    htmx.logger = console.log; 
+  </script>
 </head>
 {{ end }}
 
