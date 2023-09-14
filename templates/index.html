@@ -1,22 +1,20 @@
 {{ define "index" }}
-    {{if .Boosted }}
-      <head hx-head="merge">
-        <title>{{ .Title }}</title>
-      </head>
-    {{end}}
-<h1>{{ .Title }}</h1>
+  {{ if .Boosted }}
+    <head hx-head="merge">
+      <title>{{ .Title }}</title>
+    </head>
+  {{ end }}
+  <h1>{{ .Title }}</h1>
 {{ end }}
 
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="en">
-
-{{ template "head" . }}
-
-<body hx-ext="head-support">
-  {{ template "nav" . }}
-  <main>
-    {{ template "index" . }}
-  </main>
-</body>
-
+  {{ template "head" . }}
+  <body hx-ext="head-support">
+    {{ template "nav" . }}
+    <main>
+      {{ template "index" . }}
+    </main>
+  </body>
 </html>

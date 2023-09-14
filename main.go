@@ -15,15 +15,15 @@ type App struct {
 }
 
 type Page struct {
-	Title string
-  Boosted bool
+	Title   string
+	Boosted bool
 }
 
 func (a *App) Index(c echo.Context) error {
 	r := c.Request()
 	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
 
-  page := Page{Title: "Index", Boosted: h.HxBoosted}
+	page := Page{Title: "Index", Boosted: h.HxBoosted}
 
 	if page.Boosted == true {
 		return c.Render(http.StatusOK, "index", &page)
@@ -36,7 +36,7 @@ func (a *App) About(c echo.Context) error {
 	r := c.Request()
 	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
 
-  page := Page{Title: "About", Boosted: h.HxBoosted }
+	page := Page{Title: "About", Boosted: h.HxBoosted}
 
 	if page.Boosted == true {
 		return c.Render(http.StatusOK, "about", &page)
@@ -46,7 +46,7 @@ func (a *App) About(c echo.Context) error {
 }
 
 func (a *App) Test(c echo.Context) error {
-  return c.Render(http.StatusOK, "test", Page{Title: "Test"})
+	return c.Render(http.StatusOK, "test", Page{Title: "Test"})
 }
 
 func main() {
@@ -60,14 +60,14 @@ func main() {
 	}
 
 	app.appTemplates.Init()
-  app.appTemplates.Add("templates/*.html")
-  app.appTemplates.Add("templates/test/*.html")
+	app.appTemplates.Add("templates/*.html")
+	app.appTemplates.Add("templates/*/*.html")
 
 	e.Renderer = app.appTemplates
 
 	e.GET("/", app.Index)
 	e.GET("/about", app.About)
-  e.GET("/test", app.Test)
+	e.GET("/test", app.Test)
 
 	e.Logger.Fatal(e.Start(":3000"))
 }

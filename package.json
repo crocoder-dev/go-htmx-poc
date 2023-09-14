@@ -1,0 +1,16 @@
+{
+  "name": "go-htmx-poc",
+  "version": "1.0.0",
+  "description": "install air",
+  "main": "index.js",
+  "scripts": {
+    "format": "prettier --write ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "prettier": "^3.0.3",
+    "prettier-plugin-go-template": "^0.0.15"
+  }
+}

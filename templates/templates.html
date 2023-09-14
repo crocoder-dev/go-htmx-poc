@@ -1,20 +1,19 @@
 {{ define "head" }}
-<head>
-  <meta charset="UTF-8">
-  <title>{{ .Title }}</title>
-  <script src="https://unpkg.com/htmx.org@1.9.5/dist/htmx.min.js"></script>
-  <script src="https://unpkg.com/htmx.org@1.9.5/dist/ext/head-support.js"></script>
-  <script>
-    htmx.logger = console.log; 
-  </script>
-</head>
+  <head>
+    <meta charset="UTF-8" />
+    <title>{{ .Title }}</title>
+    <script src="https://unpkg.com/htmx.org@1.9.5/dist/htmx.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.5/dist/ext/head-support.js"></script>
+    <script>
+      htmx.logger = console.log;
+    </script>
+  </head>
 {{ end }}
 
 {{ define "nav" }}
-<nav hx-boost="true" hx-target="main" hx-swap="innerHTML">
-  <a href="/">Home</a>
-  <a href="/about">About</a>
-</nav>
-<hr />
+  <nav hx-boost="true" hx-target="main" hx-swap="innerHTML">
+    <a href="/">Home</a>
+    <a href="/about">About</a>
+  </nav>
+  <hr />
 {{ end }}
-
