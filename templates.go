@@ -11,8 +11,8 @@ type Template struct {
 	templates *template.Template
 }
 
-func (t *Template) Init(glob string) {
-	t.templates = template.Must(template.ParseGlob(glob))
+func (t *Template) Init() {
+  t.templates = template.New("")
 }
 
 func (t *Template) Add(glob string) {

@@ -1,4 +1,9 @@
 {{ define "index" }}
+    {{if .Boosted }}
+      <head hx-head="merge">
+        <title>{{ .Title }}</title>
+      </head>
+    {{end}}
 <h1>{{ .Title }}</h1>
 {{ end }}
 
@@ -7,7 +12,7 @@
 
 {{ template "head" . }}
 
-<body>
+<body hx-ext="head-support">
   {{ template "nav" . }}
   <main>
     {{ template "index" . }}
