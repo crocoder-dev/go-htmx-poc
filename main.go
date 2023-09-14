@@ -9,14 +9,9 @@ import (
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 )
 
-type State struct {
-}
-
 type App struct {
 	htmx         *htmx.HTMX
 	appTemplates *Template
-
-	state State
 }
 
 type Page struct {
@@ -45,6 +40,10 @@ func (a *App) About(c echo.Context) error {
 	return c.Render(http.StatusOK, "about.html", Page{Title: "About"})
 }
 
+func (a *App) Test(c echo.Context) error {
+  return c.Render(http.StatusOK, "test", Page{Title: "Test"})
+}
+
 func main() {
 	e := echo.New()
 	e.Use(echoMiddleware.Logger())
@@ -53,15 +52,16 @@ func main() {
 
 	app := &App{
 		appTemplates: new(Template),
-		state:        State{},
 	}
 
-	app.appTemplates.Add("templates/*.html")
+	app.appTemplates.Init("templates/*.html")
+  app.appTemplates.Add("templates/test/*.html")
 
 	e.Renderer = app.appTemplates
 
 	e.GET("/", app.Index)
 	e.GET("/about", app.About)
+  e.GET("/test", app.Test)
 
 	e.Logger.Fatal(e.Start(":3000"))
 }

@@ -11,8 +11,12 @@ type Template struct {
 	templates *template.Template
 }
 
-func (t *Template) Add(glob string) {
+func (t *Template) Init(glob string) {
 	t.templates = template.Must(template.ParseGlob(glob))
+}
+
+func (t *Template) Add(glob string) {
+  t.templates = template.Must(t.templates.ParseGlob(glob))
 }
 
 func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
