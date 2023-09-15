@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"net/http"
+	"ftm"
 
 	"github.com/donseba/go-htmx"
 	"github.com/labstack/echo/v4"
@@ -45,8 +46,26 @@ func (a *App) About(c echo.Context) error {
 	return c.Render(http.StatusOK, "about.html", &page)
 }
 
+func (a *App) Contact(c echo.Context) error {
+	r := c.Request()
+	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
+
+	page := Page{Title: "Contact", Boosted: h.HxBoosted}
+
+	if page.Boosted == true {
+		return c.Render(http.StatusOK, "contact", &page)
+	}
+
+	return c.Render(http.StatusOK, "contact.html", &page)
+}
+
 func (a *App) Test(c echo.Context) error {
 	return c.Render(http.StatusOK, "test", Page{Title: "Test"})
+}
+
+func submit(c echo.Context) (err error) {
+    name := c.FormValue("first-name")
+	fmt.Println(name);
 }
 
 func main() {
@@ -67,7 +86,10 @@ func main() {
 
 	e.GET("/", app.Index)
 	e.GET("/about", app.About)
+	e.GET("/contact", app.Contact)
 	e.GET("/test", app.Test)
+
+	e.POST("/submit", submit)
 
 	e.Logger.Fatal(e.Start(":3000"))
 }
