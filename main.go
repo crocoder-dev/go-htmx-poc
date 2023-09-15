@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"net/http"
-	"ftm"
+	"fmt"
 
 	"github.com/donseba/go-htmx"
 	"github.com/labstack/echo/v4"
@@ -63,9 +63,10 @@ func (a *App) Test(c echo.Context) error {
 	return c.Render(http.StatusOK, "test", Page{Title: "Test"})
 }
 
-func submit(c echo.Context) (err error) {
+func (a *App) submit(c echo.Context) (err error) {
     name := c.FormValue("first-name")
 	fmt.Println(name);
+	return nil
 }
 
 func main() {
@@ -89,7 +90,7 @@ func main() {
 	e.GET("/contact", app.Contact)
 	e.GET("/test", app.Test)
 
-	e.POST("/submit", submit)
+	e.POST("/submit", app.submit)
 
 	e.Logger.Fatal(e.Start(":3000"))
 }
