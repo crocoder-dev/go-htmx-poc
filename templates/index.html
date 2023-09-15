@@ -1,17 +1,20 @@
-<!DOCTYPE html>
+{{ define "index" }}
+  {{ if .Boosted }}
+    <head hx-head="merge">
+      <title>{{ .Title }}</title>
+    </head>
+  {{ end }}
+  <h1>{{ .Title }}</h1>
+{{ end }}
+
+
+<!doctype html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8">
-  <title>Document</title>
-  <script src="https://unpkg.com/htmx.org@1.9.5"></script>
-</head>
-
-<body>
-
-  <h1>hello world</h1>
-  <p>lorem</p>
-  <p>lorem</p>
-</body>
-
+  {{ template "head" . }}
+  <body hx-ext="head-support">
+    {{ template "nav" . }}
+    <main>
+      {{ template "index" . }}
+    </main>
+  </body>
 </html>

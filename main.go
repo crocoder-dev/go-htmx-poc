@@ -9,29 +9,44 @@ import (
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 )
 
-type State struct {
-}
-
 type App struct {
 	htmx         *htmx.HTMX
 	appTemplates *Template
+}
 
-	state State
+type Page struct {
+	Title   string
+	Boosted bool
 }
 
 func (a *App) Index(c echo.Context) error {
-  r := c.Request()
-  h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
-  println("HX-Boosted: ", h.HxBoosted)
-  println("HX-Current-URL: ", h.HxCurrentURL)
-  println("HX-History-Restore-Request: ", h.HxHistoryRestoreRequest)
-  println("HX-Prompt: ", h.HxPrompt)
-  println("HX-Request: ", h.HxRequest)
-  println("HX-Target: ", h.HxTarget)
-  println("HX-Trigger-Name: ", h.HxTriggerName)
-  println("HX-Trigger: ", h.HxTrigger)
+	r := c.Request()
+	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
 
-	return c.Render(http.StatusOK, "index.html", a.state)
+	page := Page{Title: "Index", Boosted: h.HxBoosted}
+
+	if page.Boosted == true {
+		return c.Render(http.StatusOK, "index", &page)
+	}
+
+	return c.Render(http.StatusOK, "index.html", &page)
+}
+
+func (a *App) About(c echo.Context) error {
+	r := c.Request()
+	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
+
+	page := Page{Title: "About", Boosted: h.HxBoosted}
+
+	if page.Boosted == true {
+		return c.Render(http.StatusOK, "about", &page)
+	}
+
+	return c.Render(http.StatusOK, "about.html", &page)
+}
+
+func (a *App) Test(c echo.Context) error {
+	return c.Render(http.StatusOK, "test", Page{Title: "Test"})
 }
 
 func main() {
@@ -42,14 +57,17 @@ func main() {
 
 	app := &App{
 		appTemplates: new(Template),
-    state: State{},
 	}
 
+	app.appTemplates.Init()
 	app.appTemplates.Add("templates/*.html")
+	app.appTemplates.Add("templates/*/*.html")
 
 	e.Renderer = app.appTemplates
 
 	e.GET("/", app.Index)
+	e.GET("/about", app.About)
+	e.GET("/test", app.Test)
 
 	e.Logger.Fatal(e.Start(":3000"))
 }
