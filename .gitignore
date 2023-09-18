@@ -1,4 +1,4 @@
 got-htmx-poc
 tmp/
 node_modules/
-src/
+dist/
