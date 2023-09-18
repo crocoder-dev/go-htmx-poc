@@ -1,16 +1,15 @@
 {{ define "about" }}
   {{ if .Boosted }}
-    <head hx-head="merge">
-      <title>{{ .Title }}</title>
-    </head>
+    {{ template "head" . }}
   {{ end }}
   <h1>{{ .Title }}</h1>
 {{ end }}
 
+
 <!doctype html>
 <html lang="en">
   {{ template "head" . }}
-  <body>
+  <body hx-ext="head-support">
     {{ template "nav" . }}
     <main>
       {{ template "about" . }}

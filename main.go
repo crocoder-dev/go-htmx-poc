@@ -69,6 +69,8 @@ func main() {
 	e.GET("/about", app.About)
 	e.GET("/test", app.Test)
 
+	e.Static("/", "dist")
+
 	e.Logger.Fatal(e.Start(":3000"))
 }
 
