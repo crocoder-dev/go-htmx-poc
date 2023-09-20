@@ -64,9 +64,11 @@ func (a *App) Test(c echo.Context) error {
 }
 
 func (a *App) submit(c echo.Context) (err error) {
-    name := c.FormValue("first-name")
-	fmt.Println(name);
-	return nil
+    name := c.FormValue("name")
+    email := c.FormValue("email")
+	fmt.Println("Name: ", name);
+	fmt.Println("Email: ", email);
+	return c.String(http.StatusOK, "Submitted!")
 }
 
 func main() {
