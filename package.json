@@ -4,13 +4,16 @@
   "description": "install air",
   "main": "index.js",
   "scripts": {
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "build": "tailwindcss -i ./src/input.css -o ./dist/output.css",
+    "watch": "tailwindcss -i ./src/input.css -o ./dist/output.css --watch"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "prettier": "^3.0.3",
-    "prettier-plugin-go-template": "^0.0.15"
+    "prettier-plugin-go-template": "^0.0.15",
+    "tailwindcss": "latest"
   }
 }

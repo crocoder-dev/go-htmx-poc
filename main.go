@@ -91,6 +91,7 @@ func main() {
 	e.GET("/test", app.Test)
 
 	e.POST("/submit", app.submit)
+	e.Static("/", "dist")
 
 	e.Logger.Fatal(e.Start(":3000"))
 }
