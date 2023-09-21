@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"html/template"
 	"net/http"
 
 	"github.com/donseba/go-htmx"
@@ -17,6 +18,7 @@ type App struct {
 type Page struct {
 	Title   string
 	Boosted bool
+	Chart   template.HTML
 }
 
 func (a *App) Index(c echo.Context) error {
@@ -49,6 +51,19 @@ func (a *App) Test(c echo.Context) error {
 	return c.Render(http.StatusOK, "test", Page{Title: "Test"})
 }
 
+func (a *App) Chart(c echo.Context) error {
+	r := c.Request()
+	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
+
+	chart := template.HTML(CreateLineChart())
+	page := Page{Title: "Chart", Boosted: h.HxBoosted, Chart: chart}
+
+  if page.Boosted == true {
+    return c.Render(http.StatusOK, "chart", page)
+  }
+	return c.Render(http.StatusOK, "chart.html", page)
+}
+
 func main() {
 	e := echo.New()
 	e.Use(echoMiddleware.Logger())
@@ -68,6 +83,7 @@ func main() {
 	e.GET("/", app.Index)
 	e.GET("/about", app.About)
 	e.GET("/test", app.Test)
+	e.GET("/chart", app.Chart)
 
 	e.Static("/", "dist")
 

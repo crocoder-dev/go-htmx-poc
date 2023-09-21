@@ -1,0 +1,18 @@
+{{ define "chart" }}
+  {{ if .Boosted }}
+    {{ template "head" . }}
+  {{ end }}
+  {{ .Chart }}
+{{ end }}
+
+
+<!doctype html>
+<html lang="en">
+  {{ template "head" . }}
+  <body hx-ext="head-support">
+    {{ template "nav" . }}
+    <main>
+      {{ template "chart" . }}
+    </main>
+  </body>
+</html>
