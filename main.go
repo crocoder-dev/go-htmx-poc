@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"html/template"
 	"net/http"
 	"fmt"
 
@@ -18,6 +19,7 @@ type App struct {
 type Page struct {
 	Title   string
 	Boosted bool
+	Chart   template.HTML
 }
 
 func (a *App) Index(c echo.Context) error {
@@ -63,12 +65,25 @@ func (a *App) Test(c echo.Context) error {
 	return c.Render(http.StatusOK, "test", Page{Title: "Test"})
 }
 
-func (a *App) submit(c echo.Context) (err error) {
+func (a *App) Submit(c echo.Context) (err error) {
     name := c.FormValue("name")
     email := c.FormValue("email")
 	fmt.Println("Name: ", name);
 	fmt.Println("Email: ", email);
 	return c.String(http.StatusOK, "Submitted!")
+}
+
+func (a *App) Chart(c echo.Context) error {
+	r := c.Request()
+	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
+
+	chart := template.HTML(CreateLineChart())
+	page := Page{Title: "Chart", Boosted: h.HxBoosted, Chart: chart}
+
+  if page.Boosted == true {
+    return c.Render(http.StatusOK, "chart", page)
+  }
+	return c.Render(http.StatusOK, "chart.html", page)
 }
 
 func main() {
@@ -91,8 +106,9 @@ func main() {
 	e.GET("/about", app.About)
 	e.GET("/contact", app.Contact)
 	e.GET("/test", app.Test)
+	e.GET("/chart", app.Chart)
 
-	e.POST("/submit", app.submit)
+	e.POST("/submit", app.Submit)
 	e.Static("/", "dist")
 
 	e.Logger.Fatal(e.Start(":3000"))
