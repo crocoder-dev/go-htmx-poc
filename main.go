@@ -9,6 +9,7 @@ import (
 	"github.com/donseba/go-htmx"
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
+	"github.com/patrickmn/go-cache"
 )
 
 type App struct {
@@ -61,6 +62,19 @@ func (a *App) Contact(c echo.Context) error {
 	return c.Render(http.StatusOK, "contact.html", &page)
 }
 
+func (a *App) Settings(c echo.Context) error {
+	r := c.Request()
+	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
+
+	page := Page{Title: "Settings", Boosted: h.HxBoosted}
+
+	if page.Boosted == true {
+		return c.Render(http.StatusOK, "settings", &page)
+	}
+
+	return c.Render(http.StatusOK, "settings.html", &page)
+}
+
 func (a *App) Test(c echo.Context) error {
 	return c.Render(http.StatusOK, "test", Page{Title: "Test"})
 }
@@ -83,7 +97,17 @@ func (a *App) Chart(c echo.Context) error {
   if page.Boosted == true {
     return c.Render(http.StatusOK, "chart", page)
   }
-	return c.Render(http.StatusOK, "chart.html", page)
+	return c.
+	Render(http.StatusOK, "chart.html", page)
+}
+func (a *App) setSettings(c echo.Context) (err error) {
+    name := c.FormValue("name")
+    dropdown := c.FormValue("dropdown")
+    file := c.FormValue("file")
+	fmt.Println("dropdown: ", dropdown);
+	fmt.Println("name: ", name);
+	fmt.Println("file: ", file);
+	return c.String(http.StatusOK, "Submitted!")
 }
 
 func main() {
@@ -105,10 +129,12 @@ func main() {
 	e.GET("/", app.Index)
 	e.GET("/about", app.About)
 	e.GET("/contact", app.Contact)
+	e.GET("/settings", app.Settings)
 	e.GET("/test", app.Test)
 	e.GET("/chart", app.Chart)
 
-	e.POST("/submit", app.Submit)
+	e.POST("/submit", app.submit)
+	e.POST("/setSettings", app.setSettings)
 	e.Static("/", "dist")
 
 	e.Logger.Fatal(e.Start(":3000"))
