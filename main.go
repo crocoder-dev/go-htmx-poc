@@ -5,11 +5,11 @@ import (
 	"html/template"
 	"net/http"
 	"fmt"
+	"io/fs"
 
 	"github.com/donseba/go-htmx"
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
-	"github.com/patrickmn/go-cache"
 )
 
 type App struct {
@@ -21,6 +21,12 @@ type Page struct {
 	Title   string
 	Boosted bool
 	Chart   template.HTML
+}
+
+var settingsGlobal = {
+	name string
+	file *file
+	dropdown string
 }
 
 func (a *App) Index(c echo.Context) error {
@@ -97,16 +103,17 @@ func (a *App) Chart(c echo.Context) error {
   if page.Boosted == true {
     return c.Render(http.StatusOK, "chart", page)
   }
-	return c.
-	Render(http.StatusOK, "chart.html", page)
+	return c.Render(http.StatusOK, "chart.html", page)
 }
 func (a *App) setSettings(c echo.Context) (err error) {
-    name := c.FormValue("name")
-    dropdown := c.FormValue("dropdown")
-    file := c.FormValue("file")
-	fmt.Println("dropdown: ", dropdown);
-	fmt.Println("name: ", name);
-	fmt.Println("file: ", file);
+	settingsGlobal = {
+		name: c.FormValue("name")
+		file: c.FormValue("file")
+		dropdown: c.FormValue("dropdown")
+	}
+	fmt.Println(settingsStruct.dropdown)
+	fmt.Println(settingsStruct.name);
+	fmt.Println(settingsStruct.file);
 	return c.String(http.StatusOK, "Submitted!")
 }
 
@@ -115,7 +122,7 @@ func main() {
 	e.Use(echoMiddleware.Logger())
 	e.Use(echoMiddleware.Recover())
 	e.Use(HtmxMiddleware)
-
+	
 	app := &App{
 		appTemplates: new(Template),
 	}
@@ -133,9 +140,9 @@ func main() {
 	e.GET("/test", app.Test)
 	e.GET("/chart", app.Chart)
 
-	e.POST("/submit", app.submit)
+	e.POST("/submit", app.Submit)
 	e.POST("/setSettings", app.setSettings)
-	e.Static("/", "dist")
+	e.File("/", "dist/output.css")
 
 	e.Logger.Fatal(e.Start(":3000"))
 }
