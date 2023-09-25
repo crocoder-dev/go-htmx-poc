@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"net/http"
 	"fmt"
-	"io/fs"
+	"mime/multipart"
 
 	"github.com/donseba/go-htmx"
 	"github.com/labstack/echo/v4"
@@ -23,11 +23,13 @@ type Page struct {
 	Chart   template.HTML
 }
 
-var settingsGlobal = {
-	name string
-	file *file
-	dropdown string
+type SettingsGlobal struct {
+    Name string
+	File *multipart.FileHeader
+	Dropdown string
 }
+
+var settingsGlobal SettingsGlobal
 
 func (a *App) Index(c echo.Context) error {
 	r := c.Request()
@@ -106,14 +108,30 @@ func (a *App) Chart(c echo.Context) error {
 	return c.Render(http.StatusOK, "chart.html", page)
 }
 func (a *App) setSettings(c echo.Context) (err error) {
-	settingsGlobal = {
-		name: c.FormValue("name")
-		file: c.FormValue("file")
-		dropdown: c.FormValue("dropdown")
-	}
-	fmt.Println(settingsStruct.dropdown)
-	fmt.Println(settingsStruct.name);
-	fmt.Println(settingsStruct.file);
+    err = c.Request().ParseMultipartForm(10 << 20) // 10 MB
+    if err != nil {
+        return err
+    }
+    name := c.FormValue("name")
+    dropdown := c.FormValue("dropdown")
+    fileHeader, err := c.FormFile("file")
+    if err != nil {
+        return err
+    }
+
+    file, err := fileHeader.Open()
+    if err != nil {
+        return err
+    }
+    defer file.Close()
+
+    settingsGlobal = SettingsGlobal{
+        Name:     name,
+        File:     fileHeader,
+        Dropdown: dropdown,
+    }
+    fmt.Println(settingsGlobal.Name)
+    fmt.Println(settingsGlobal.Dropdown)
 	return c.String(http.StatusOK, "Submitted!")
 }
 
