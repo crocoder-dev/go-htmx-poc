@@ -110,18 +110,18 @@ func (a *App) Chart(c echo.Context) error {
 func (a *App) setSettings(c echo.Context) (err error) {
     err = c.Request().ParseMultipartForm(10 << 20) // 10 MB
     if err != nil {
-        return err
+        fmt.Println("Error:", err)
     }
     name := c.FormValue("name")
     dropdown := c.FormValue("dropdown")
     fileHeader, err := c.FormFile("file")
     if err != nil {
-        return err
+        fmt.Println("Error:", err)
     }
 
     file, err := fileHeader.Open()
     if err != nil {
-        return err
+        fmt.Println("Error:", err)
     }
     defer file.Close()
 
@@ -132,6 +132,7 @@ func (a *App) setSettings(c echo.Context) (err error) {
     }
     fmt.Println(settingsGlobal.Name)
     fmt.Println(settingsGlobal.Dropdown)
+    fmt.Println(settingsGlobal.File)
 	return c.String(http.StatusOK, "Submitted!")
 }
 
@@ -160,7 +161,7 @@ func main() {
 
 	e.POST("/submit", app.Submit)
 	e.POST("/setSettings", app.setSettings)
-	e.File("/", "dist/output.css")
+	e.Static("/", "dist")
 
 	e.Logger.Fatal(e.Start(":3000"))
 }
