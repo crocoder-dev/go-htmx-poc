@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"net/http"
 	"fmt"
+	"mime/multipart"
 
 	"github.com/donseba/go-htmx"
 	"github.com/labstack/echo/v4"
@@ -21,6 +22,14 @@ type Page struct {
 	Boosted bool
 	Chart   template.HTML
 }
+
+type SettingsGlobal struct {
+    Name string
+	File *multipart.FileHeader
+	Dropdown string
+}
+
+var settingsGlobal SettingsGlobal
 
 func (a *App) Index(c echo.Context) error {
 	r := c.Request()
@@ -61,6 +70,19 @@ func (a *App) Contact(c echo.Context) error {
 	return c.Render(http.StatusOK, "contact.html", &page)
 }
 
+func (a *App) Settings(c echo.Context) error {
+	r := c.Request()
+	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
+
+	page := Page{Title: "Settings", Boosted: h.HxBoosted}
+
+	if page.Boosted == true {
+		return c.Render(http.StatusOK, "settings", &page)
+	}
+
+	return c.Render(http.StatusOK, "settings.html", &page)
+}
+
 func (a *App) Test(c echo.Context) error {
 	return c.Render(http.StatusOK, "test", Page{Title: "Test"})
 }
@@ -85,13 +107,41 @@ func (a *App) Chart(c echo.Context) error {
   }
 	return c.Render(http.StatusOK, "chart.html", page)
 }
+func (a *App) setSettings(c echo.Context) (err error) {
+    err = c.Request().ParseMultipartForm(10 << 20) // 10 MB
+    if err != nil {
+        fmt.Println("Error:", err)
+    }
+    name := c.FormValue("name")
+    dropdown := c.FormValue("dropdown")
+    fileHeader, err := c.FormFile("file")
+    if err != nil {
+        fmt.Println("Error:", err)
+    }
+
+    file, err := fileHeader.Open()
+    if err != nil {
+        fmt.Println("Error:", err)
+    }
+    defer file.Close()
+
+    settingsGlobal = SettingsGlobal{
+        Name:     name,
+        File:     fileHeader,
+        Dropdown: dropdown,
+    }
+    fmt.Println(settingsGlobal.Name)
+    fmt.Println(settingsGlobal.Dropdown)
+    fmt.Println(settingsGlobal.File)
+	return c.String(http.StatusOK, "Submitted!")
+}
 
 func main() {
 	e := echo.New()
 	e.Use(echoMiddleware.Logger())
 	e.Use(echoMiddleware.Recover())
 	e.Use(HtmxMiddleware)
-
+	
 	app := &App{
 		appTemplates: new(Template),
 	}
@@ -105,10 +155,12 @@ func main() {
 	e.GET("/", app.Index)
 	e.GET("/about", app.About)
 	e.GET("/contact", app.Contact)
+	e.GET("/settings", app.Settings)
 	e.GET("/test", app.Test)
 	e.GET("/chart", app.Chart)
 
 	e.POST("/submit", app.Submit)
+	e.POST("/setSettings", app.setSettings)
 	e.Static("/", "dist")
 
 	e.Logger.Fatal(e.Start(":3000"))
