@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	"html/template"
-	"net/http"
 	"fmt"
+	"html/template"
 	"mime/multipart"
+	"net/http"
 
 	"github.com/donseba/go-htmx"
 	"github.com/labstack/echo/v4"
@@ -24,8 +24,8 @@ type Page struct {
 }
 
 type SettingsGlobal struct {
-    Name string
-	File *multipart.FileHeader
+	Name     string
+	File     *multipart.File
 	Dropdown string
 }
 
@@ -88,10 +88,10 @@ func (a *App) Test(c echo.Context) error {
 }
 
 func (a *App) Submit(c echo.Context) (err error) {
-    name := c.FormValue("name")
-    email := c.FormValue("email")
-	fmt.Println("Name: ", name);
-	fmt.Println("Email: ", email);
+	name := c.FormValue("name")
+	email := c.FormValue("email")
+	fmt.Println("Name: ", name)
+	fmt.Println("Email: ", email)
 	return c.String(http.StatusOK, "Submitted!")
 }
 
@@ -102,38 +102,41 @@ func (a *App) Chart(c echo.Context) error {
 	chart := template.HTML(CreateLineChart())
 	page := Page{Title: "Chart", Boosted: h.HxBoosted, Chart: chart}
 
-  if page.Boosted == true {
-    return c.Render(http.StatusOK, "chart", page)
-  }
+	if page.Boosted == true {
+		return c.Render(http.StatusOK, "chart", page)
+	}
 	return c.Render(http.StatusOK, "chart.html", page)
 }
 func (a *App) setSettings(c echo.Context) (err error) {
-    err = c.Request().ParseMultipartForm(10 << 20) // 10 MB
-    if err != nil {
-        fmt.Println("Error:", err)
-    }
-    name := c.FormValue("name")
-    dropdown := c.FormValue("dropdown")
-    fileHeader, err := c.FormFile("file")
-    if err != nil {
-        fmt.Println("Error:", err)
-    }
+	err = c.Request().ParseMultipartForm(10 << 20) // 10 MB
+	if err != nil {
+		fmt.Println("Error:", err)
+		return err
+	}
+	name := c.FormValue("name")
+	dropdown := c.FormValue("dropdown")
+	fileHeader, err := c.FormFile("file")
+	if err != nil {
+		fmt.Println("Error:", err)
+		return err
+	}
 
-    file, err := fileHeader.Open()
-    if err != nil {
-        fmt.Println("Error:", err)
-    }
-    defer file.Close()
+	file, err := fileHeader.Open()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return err
+	}
+	defer file.Close()
 
-    settingsGlobal = SettingsGlobal{
-        Name:     name,
-        File:     fileHeader,
-        Dropdown: dropdown,
-    }
-    fmt.Println(settingsGlobal.Name)
-    fmt.Println(settingsGlobal.Dropdown)
-    fmt.Println(settingsGlobal.File)
-	return c.String(http.StatusOK, "Submitted!")
+	settingsGlobal = SettingsGlobal{
+		Name:     name,
+		File:     &file,
+		Dropdown: dropdown,
+	}
+	fmt.Println(settingsGlobal.Name)
+	fmt.Println(settingsGlobal.Dropdown)
+	fmt.Println(settingsGlobal.File)
+	return c.String(http.StatusOK, fileHeader.Filename)
 }
 
 func main() {
@@ -141,7 +144,7 @@ func main() {
 	e.Use(echoMiddleware.Logger())
 	e.Use(echoMiddleware.Recover())
 	e.Use(HtmxMiddleware)
-	
+
 	app := &App{
 		appTemplates: new(Template),
 	}

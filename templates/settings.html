@@ -2,7 +2,7 @@
   {{ if .Boosted }}
     {{ template "head" . }}
   {{ end }}
-  <div class="w-screen flex pt-6 justify-center items-center">
+  <div class="w-screen flex flex-col pt-6 justify-center items-center">
     <form
       hx-post="/setSettings"
       hx-target="#message"
