@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"html/template"
+	"io"
 	"mime/multipart"
 	"net/http"
 
@@ -27,6 +29,13 @@ type SettingsGlobal struct {
 	Name     string
 	File     *multipart.File
 	Dropdown string
+}
+
+type ApiResponse struct {
+	UserId    int    `json:"userId"`
+	Id        int    `json:"id"`
+	Title     string `json:"title"`
+	Completed bool   `json:"completed"`
 }
 
 var settingsGlobal SettingsGlobal
@@ -83,6 +92,19 @@ func (a *App) Settings(c echo.Context) error {
 	return c.Render(http.StatusOK, "settings.html", &page)
 }
 
+func (a *App) Fetch(c echo.Context) error {
+	r := c.Request()
+	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
+
+	page := Page{Title: "Fetch", Boosted: h.HxBoosted}
+
+	if page.Boosted == true {
+		return c.Render(http.StatusOK, "fetch", &page)
+	}
+
+	return c.Render(http.StatusOK, "fetch.html", &page)
+}
+
 func (a *App) Test(c echo.Context) error {
 	return c.Render(http.StatusOK, "test", Page{Title: "Test"})
 }
@@ -107,6 +129,31 @@ func (a *App) Chart(c echo.Context) error {
 	}
 	return c.Render(http.StatusOK, "chart.html", page)
 }
+
+func (a *App) getData(c echo.Context) error {
+	resp, err := http.Get("https://jsonplaceholder.typicode.com/todos")
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	var result []ApiResponse
+	if err := json.Unmarshal(body, &result); err != nil {
+		return err
+	}
+	fmt.Println(result)
+	var html string
+	for i := 0; i < len(result); i++ {
+		html = html + "<li>" + result[i].Title + "</li>"
+	}
+	fmt.Println(html)
+
+	return c.HTML(http.StatusOK, html)
+}
+
 func (a *App) setSettings(c echo.Context) (err error) {
 	err = c.Request().ParseMultipartForm(10 << 20) // 10 MB
 	if err != nil {
@@ -161,9 +208,11 @@ func main() {
 	e.GET("/settings", app.Settings)
 	e.GET("/test", app.Test)
 	e.GET("/chart", app.Chart)
+	e.GET("/fetch", app.Fetch)
 
 	e.POST("/submit", app.Submit)
 	e.POST("/setSettings", app.setSettings)
+	e.GET("/getData", app.getData)
 	e.Static("/", "dist")
 
 	e.Logger.Fatal(e.Start(":3000"))

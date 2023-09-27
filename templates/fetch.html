@@ -1,0 +1,21 @@
+{{ define "fetch" }}
+  {{ if .Boosted }}
+    {{ template "head" . }}
+  {{ end }}
+  <button class="bg-slate-400 rounded-md px-4 py-2 font-bold text-white" hx-get="/getData" hx-target="#list">Get data</button>
+  <ul id="list">
+
+  </ul>
+{{ end }}
+
+
+<!doctype html>
+<html lang="en">
+  {{ template "head" . }}
+  <body hx-ext="head-support">
+    {{ template "nav" . }}
+    <main>
+      {{ template "fetch" . }}
+    </main>
+  </body>
+</html>
