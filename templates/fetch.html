@@ -2,10 +2,10 @@
   {{ if .Boosted }}
     {{ template "head" . }}
   {{ end }}
-  <button class="bg-slate-400 rounded-md px-4 py-2 font-bold text-white" hx-get="/getData" hx-target="#list">Get data</button>
-  <ul id="list">
+  <button class="bg-slate-400 rounded-md px-4 py-2 font-bold text-white" hx-get="/getData" hx-target="#select">Get data</button>
+  <select id="select" class="w-52">
 
-  </ul>
+  </select>
 {{ end }}
 
 

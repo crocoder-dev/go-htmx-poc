@@ -2,16 +2,18 @@ package main
 
 import (
 	"context"
-	"encoding/json"
+	"database/sql"
 	"fmt"
 	"html/template"
-	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
+	"os"
 
 	"github.com/donseba/go-htmx"
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type App struct {
@@ -96,6 +98,29 @@ func (a *App) Fetch(c echo.Context) error {
 	r := c.Request()
 	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
 
+	os.Remove("db/sqlite-database.db")
+
+	fmt.Println("Creating sqlite-database.db...")
+	file, err := os.Create("db/sqlite-database.db")
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	file.Close()
+
+	sqliteDatabase, _ := sql.Open("sqlite3", "./db/sqlite-database.db")
+	defer sqliteDatabase.Close()
+	createTable(sqliteDatabase)
+
+	insertStudent(sqliteDatabase, "0001", "Liana Kim", "Bachelor")
+	insertStudent(sqliteDatabase, "0002", "Glen Rangel", "Bachelor")
+	insertStudent(sqliteDatabase, "0003", "Martin Martins", "Master")
+	insertStudent(sqliteDatabase, "0004", "Alayna Armitage", "PHD")
+	insertStudent(sqliteDatabase, "0005", "Marni Benson", "Bachelor")
+	insertStudent(sqliteDatabase, "0006", "Derrick Griffiths", "Master")
+	insertStudent(sqliteDatabase, "0007", "Leigh Daly", "Bachelor")
+	insertStudent(sqliteDatabase, "0008", "Marni Benson", "PHD")
+	insertStudent(sqliteDatabase, "0009", "Klay Correa", "Bachelor")
+
 	page := Page{Title: "Fetch", Boosted: h.HxBoosted}
 
 	if page.Boosted == true {
@@ -131,27 +156,11 @@ func (a *App) Chart(c echo.Context) error {
 }
 
 func (a *App) getData(c echo.Context) error {
-	resp, err := http.Get("https://jsonplaceholder.typicode.com/todos")
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-	var result []ApiResponse
-	if err := json.Unmarshal(body, &result); err != nil {
-		return err
-	}
-	fmt.Println(result)
-	var html string
-	for i := 0; i < len(result); i++ {
-		html = html + "<li>" + result[i].Title + "</li>"
-	}
-	fmt.Println(html)
+	sqliteDatabase, _ := sql.Open("sqlite3", "./db/sqlite-database.db")
+	defer sqliteDatabase.Close()
 
-	return c.HTML(http.StatusOK, html)
+	var data = getStudents(sqliteDatabase)
+	return c.HTML(http.StatusOK, data)
 }
 
 func (a *App) setSettings(c echo.Context) (err error) {
@@ -218,6 +227,56 @@ func main() {
 	e.Logger.Fatal(e.Start(":3000"))
 }
 
+func createTable(db *sql.DB) {
+	createStudentTableSQL := `CREATE TABLE student (
+		"idStudent" integer NOT NULL PRIMARY KEY AUTOINCREMENT,		
+		"code" TEXT,
+		"name" TEXT,
+		"program" TEXT		
+	  );` // SQL Statement for Create Table
+
+	log.Println("Create student table...")
+	statement, err := db.Prepare(createStudentTableSQL) // Prepare SQL Statement
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	statement.Exec() // Execute SQL Statements
+	log.Println("student table created")
+}
+
+// We are passing db reference connection from main to our method with other parameters
+func insertStudent(db *sql.DB, code string, name string, program string) {
+	log.Println("Inserting student record ...")
+	insertStudentSQL := `INSERT INTO student(code, name, program) VALUES (?, ?, ?)`
+	statement, err := db.Prepare(insertStudentSQL) // Prepare statement.
+	// This is good to avoid SQL injections
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	_, err = statement.Exec(code, name, program)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+}
+
+func getStudents(db *sql.DB) string {
+	row, err := db.Query("SELECT * FROM student ORDER BY name")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer row.Close()
+	var optionList string
+	for row.Next() {
+		var id int
+		var code string
+		var name string
+		var program string
+		row.Scan(&id, &code, &name, &program)
+		optionList = optionList + "<option>" + name + "</option>"
+		log.Println("Student: ", code, " ", name, " ", program)
+	}
+	return optionList
+}
 func HtmxMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := c.Request().Context()
