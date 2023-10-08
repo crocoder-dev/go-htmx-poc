@@ -146,7 +146,7 @@ func (a *App) Chart(c echo.Context) error {
 	r := c.Request()
 	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
 
-	chart := template.HTML(CreateLineChart())
+	chart := template.HTML(CreateTestChart())
 	page := Page{Title: "Chart", Boosted: h.HxBoosted, Chart: chart}
 
 	if page.Boosted == true {
