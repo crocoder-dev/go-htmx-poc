@@ -22,9 +22,10 @@ type App struct {
 }
 
 type Page struct {
-	Title   string
-	Boosted bool
-	Chart   template.HTML
+	Title     string
+	Boosted   bool
+	LineChart template.HTML
+	BarsChart template.HTML
 }
 
 type SettingsGlobal struct {
@@ -48,7 +49,7 @@ func (a *App) Index(c echo.Context) error {
 
 	page := Page{Title: "Index", Boosted: h.HxBoosted}
 
-	if page.Boosted == true {
+	if page.Boosted {
 		return c.Render(http.StatusOK, "index", &page)
 	}
 
@@ -61,7 +62,7 @@ func (a *App) About(c echo.Context) error {
 
 	page := Page{Title: "About", Boosted: h.HxBoosted}
 
-	if page.Boosted == true {
+	if page.Boosted {
 		return c.Render(http.StatusOK, "about", &page)
 	}
 
@@ -74,7 +75,7 @@ func (a *App) Contact(c echo.Context) error {
 
 	page := Page{Title: "Contact", Boosted: h.HxBoosted}
 
-	if page.Boosted == true {
+	if page.Boosted {
 		return c.Render(http.StatusOK, "contact", &page)
 	}
 
@@ -87,7 +88,7 @@ func (a *App) Settings(c echo.Context) error {
 
 	page := Page{Title: "Settings", Boosted: h.HxBoosted}
 
-	if page.Boosted == true {
+	if page.Boosted {
 		return c.Render(http.StatusOK, "settings", &page)
 	}
 
@@ -123,7 +124,7 @@ func (a *App) Fetch(c echo.Context) error {
 
 	page := Page{Title: "Fetch", Boosted: h.HxBoosted}
 
-	if page.Boosted == true {
+	if page.Boosted {
 		return c.Render(http.StatusOK, "fetch", &page)
 	}
 
@@ -147,12 +148,26 @@ func (a *App) Chart(c echo.Context) error {
 	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
 
 	chart := template.HTML(CreateLineChart())
-	page := Page{Title: "Chart", Boosted: h.HxBoosted, Chart: chart}
+	page := Page{Title: "Chart", Boosted: h.HxBoosted, LineChart: chart}
 
-	if page.Boosted == true {
+	if page.Boosted {
 		return c.Render(http.StatusOK, "chart", page)
 	}
 	return c.Render(http.StatusOK, "chart.html", page)
+}
+
+func (a *App) Dashboard(c echo.Context) error {
+	r := c.Request()
+	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
+
+	lineChart := template.HTML(CreateLineChart())
+	barsChart := template.HTML(CreateBarsChart())
+	page := Page{Title: "Dashboard", Boosted: h.HxBoosted, LineChart: lineChart, BarsChart: barsChart}
+
+	if page.Boosted {
+		return c.Render(http.StatusOK, "dashboard", page)
+	}
+	return c.Render(http.StatusOK, "dashboard.html", page)
 }
 
 func (a *App) getData(c echo.Context) error {
@@ -218,6 +233,7 @@ func main() {
 	e.GET("/test", app.Test)
 	e.GET("/chart", app.Chart)
 	e.GET("/fetch", app.Fetch)
+	e.GET("/dashboard", app.Dashboard)
 
 	e.POST("/submit", app.Submit)
 	e.POST("/setSettings", app.setSettings)
@@ -277,6 +293,7 @@ func getStudents(db *sql.DB) string {
 	}
 	return optionList
 }
+
 func HtmxMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := c.Request().Context()

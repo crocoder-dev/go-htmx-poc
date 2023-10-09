@@ -1,7 +1,15 @@
-{{ define "contact" }}
+{{ define "dashboard" }}
   {{ if .Boosted }}
     {{ template "head" . }}
   {{ end }}
+  <div class="w-screen flex justify-center items-center flex-wrap">
+    <div class="p-2">
+      {{ .LineChart }}
+    </div>
+    <div class="p-2">
+      {{ .BarsChart }}
+    </div>
+  </div>
   {{template "contact-dashboard" .}}
 {{ end }}
 
@@ -12,7 +20,7 @@
   <body hx-ext="head-support">
     {{ template "nav" . }}
     <main>
-      {{ template "contact" . }}
+      {{ template "dashboard" . }}
     </main>
   </body>
 </html>
