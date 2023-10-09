@@ -25,6 +25,7 @@ type Page struct {
 	Title   string
 	Boosted bool
 	Chart   template.HTML
+	Chart2  template.HTML
 }
 
 type SettingsGlobal struct {
@@ -147,7 +148,8 @@ func (a *App) Chart(c echo.Context) error {
 	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
 
 	chart := template.HTML(CreateTestChart())
-	page := Page{Title: "Chart", Boosted: h.HxBoosted, Chart: chart}
+	chat2 := template.HTML(CreateTestChart2())
+	page := Page{Title: "Chart", Boosted: h.HxBoosted, Chart: chart, Chart2: chat2}
 
 	if page.Boosted == true {
 		return c.Render(http.StatusOK, "chart", page)
