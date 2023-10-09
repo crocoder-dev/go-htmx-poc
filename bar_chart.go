@@ -1,20 +1,10 @@
 package main
 
 import (
-	"math/rand"
-
 	"github.com/vicanso/go-charts/v2"
 )
 
-func CreateBarsChart() string {
-
-	// Generate random data for the bars
-	var values []float64
-	for i := 0; i < 12; i++ {
-		// Generate random float64 values between 0 and 200
-		value := rand.Float64() * 200
-		values = append(values, value)
-	}
+func CreateBarsChart(values []float64) string {
 
 	p, err := charts.BarRender(
 		[][]float64{values},

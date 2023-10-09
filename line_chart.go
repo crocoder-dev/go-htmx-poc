@@ -2,19 +2,11 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 
 	"github.com/vicanso/go-charts/v2"
 )
 
-func CreateLineChart() string {
-	// Generate random data
-	var values []float64
-	for i := 0; i < 9; i++ {
-		// Generate random float64 values between 0 and 100
-		value := rand.Float64() * 100
-		values = append(values, value)
-	}
+func CreateLineChart(values []float64) string {
 
 	p, err := charts.LineRender(
 		[][]float64{values},

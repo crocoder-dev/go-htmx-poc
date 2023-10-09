@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"math"
+	"math/rand"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -26,6 +28,8 @@ type Page struct {
 	Boosted   bool
 	LineChart template.HTML
 	BarsChart template.HTML
+	BarsAvg   float64
+	LineAvg   float64
 }
 
 type SettingsGlobal struct {
@@ -147,7 +151,13 @@ func (a *App) Chart(c echo.Context) error {
 	r := c.Request()
 	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
 
-	chart := template.HTML(CreateLineChart())
+	var values []float64
+	for i := 0; i < 9; i++ {
+		value := rand.Float64() * 100
+		values = append(values, value)
+	}
+
+	chart := template.HTML(CreateLineChart(values))
 	page := Page{Title: "Chart", Boosted: h.HxBoosted, LineChart: chart}
 
 	if page.Boosted {
@@ -156,13 +166,36 @@ func (a *App) Chart(c echo.Context) error {
 	return c.Render(http.StatusOK, "chart.html", page)
 }
 
+func averageNum(list []float64) float64 {
+	total := 0.0
+	for i := 0; i < len(list); i++ {
+		total += list[i]
+	}
+	return total / float64(len(list))
+}
+
+func randomNums(num int) []float64 {
+	var values []float64
+	for i := 0; i < 9; i++ {
+		value := rand.Float64() * 100
+		values = append(values, value)
+	}
+	return values
+}
+
 func (a *App) Dashboard(c echo.Context) error {
 	r := c.Request()
 	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
 
-	lineChart := template.HTML(CreateLineChart())
-	barsChart := template.HTML(CreateBarsChart())
-	page := Page{Title: "Dashboard", Boosted: h.HxBoosted, LineChart: lineChart, BarsChart: barsChart}
+	lineValues := randomNums(9)
+	lineAvg := math.Round(averageNum(lineValues))
+
+	barsValues := randomNums(12)
+	barsAvg := math.Round(averageNum(barsValues))
+
+	lineChart := template.HTML(CreateLineChart(lineValues))
+	barsChart := template.HTML(CreateBarsChart(barsValues))
+	page := Page{Title: "Dashboard", Boosted: h.HxBoosted, LineChart: lineChart, BarsChart: barsChart, BarsAvg: barsAvg, LineAvg: lineAvg}
 
 	if page.Boosted {
 		return c.Render(http.StatusOK, "dashboard", page)

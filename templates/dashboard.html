@@ -3,11 +3,17 @@
     {{ template "head" . }}
   {{ end }}
   <div class="w-screen flex justify-center items-center flex-wrap">
-    <div class="p-2">
-      {{ .LineChart }}
+    <div class="flex flex-col items-center p-2">
+      <div class="flex flex-col items-center justify-center p-4 text-7xl rounded-lg bg-slate-500">{{ .LineAvg }}<span class="text-2xl">LINE AVG</span></div>
+      <div>
+        {{ .LineChart }}
+      </div>
     </div>
-    <div class="p-2">
-      {{ .BarsChart }}
+    <div class="flex flex-col items-center p-2">
+      <div class="flex flex-col items-center justify-center p-4 text-7xl rounded-lg bg-slate-500">{{ .BarsAvg }}<span class="text-2xl">BARS AVG</span></div>
+      <div>
+        {{ .BarsChart }}
+      </div>
     </div>
   </div>
   {{template "contact-dashboard" .}}
