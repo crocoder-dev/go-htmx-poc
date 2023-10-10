@@ -30,6 +30,8 @@ type Page struct {
 	BarsChart template.HTML
 	BarsAvg   float64
 	LineAvg   float64
+	Chart     template.HTML
+	Chart2    template.HTML
 }
 
 type SettingsGlobal struct {
@@ -151,14 +153,9 @@ func (a *App) Chart(c echo.Context) error {
 	r := c.Request()
 	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
 
-	var values []float64
-	for i := 0; i < 9; i++ {
-		value := rand.Float64() * 100
-		values = append(values, value)
-	}
-
-	chart := template.HTML(CreateLineChart(values))
-	page := Page{Title: "Chart", Boosted: h.HxBoosted, LineChart: chart}
+	chart := template.HTML(CreateTestChart())
+	chat2 := template.HTML(CreateTestChart2())
+	page := Page{Title: "Chart", Boosted: h.HxBoosted, Chart: chart, Chart2: chat2}
 
 	if page.Boosted {
 		return c.Render(http.StatusOK, "chart", page)
