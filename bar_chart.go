@@ -25,7 +25,7 @@ func CreateBarsChart(values []float64) string {
 		func(opt *charts.ChartOption) {
 			opt.Type = "svg"
 			opt.Height = 400
-			opt.Width = 800
+			opt.Width = 500
 			opt.SymbolShow = charts.TrueFlag()
 		},
 	)

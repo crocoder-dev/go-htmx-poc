@@ -32,7 +32,18 @@ type Page struct {
 	LineAvg   float64
 	Chart     template.HTML
 	Chart2    template.HTML
+	Students  []Student
 }
+
+// row.Scan(&id, &code, &name, &program)
+type Student struct {
+	Id      int
+	Code    string
+	Name    string
+	Program string
+}
+
+var students []Student
 
 type SettingsGlobal struct {
 	Name     string
@@ -105,29 +116,6 @@ func (a *App) Fetch(c echo.Context) error {
 	r := c.Request()
 	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
 
-	os.Remove("db/sqlite-database.db")
-
-	fmt.Println("Creating sqlite-database.db...")
-	file, err := os.Create("db/sqlite-database.db")
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	file.Close()
-
-	sqliteDatabase, _ := sql.Open("sqlite3", "./db/sqlite-database.db")
-	defer sqliteDatabase.Close()
-	createTable(sqliteDatabase)
-
-	insertStudent(sqliteDatabase, "0001", "Liana Kim", "Bachelor")
-	insertStudent(sqliteDatabase, "0002", "Glen Rangel", "Bachelor")
-	insertStudent(sqliteDatabase, "0003", "Martin Martins", "Master")
-	insertStudent(sqliteDatabase, "0004", "Alayna Armitage", "PHD")
-	insertStudent(sqliteDatabase, "0005", "Marni Benson", "Bachelor")
-	insertStudent(sqliteDatabase, "0006", "Derrick Griffiths", "Master")
-	insertStudent(sqliteDatabase, "0007", "Leigh Daly", "Bachelor")
-	insertStudent(sqliteDatabase, "0008", "Marni Benson", "PHD")
-	insertStudent(sqliteDatabase, "0009", "Klay Correa", "Bachelor")
-
 	page := Page{Title: "Fetch", Boosted: h.HxBoosted}
 
 	if page.Boosted {
@@ -184,6 +172,11 @@ func (a *App) Dashboard(c echo.Context) error {
 	r := c.Request()
 	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
 
+	sqliteDatabase, _ := sql.Open("sqlite3", "./db/sqlite-database.db")
+	defer sqliteDatabase.Close()
+
+	var data = getStudents(sqliteDatabase)
+
 	lineValues := randomNums(9)
 	lineAvg := math.Round(averageNum(lineValues))
 
@@ -192,7 +185,7 @@ func (a *App) Dashboard(c echo.Context) error {
 
 	lineChart := template.HTML(CreateLineChart(lineValues))
 	barsChart := template.HTML(CreateBarsChart(barsValues))
-	page := Page{Title: "Dashboard", Boosted: h.HxBoosted, LineChart: lineChart, BarsChart: barsChart, BarsAvg: barsAvg, LineAvg: lineAvg}
+	page := Page{Title: "Dashboard", Boosted: h.HxBoosted, LineChart: lineChart, BarsChart: barsChart, BarsAvg: barsAvg, LineAvg: lineAvg, Students: data}
 
 	if page.Boosted {
 		return c.Render(http.StatusOK, "dashboard", page)
@@ -205,7 +198,12 @@ func (a *App) getData(c echo.Context) error {
 	defer sqliteDatabase.Close()
 
 	var data = getStudents(sqliteDatabase)
-	return c.HTML(http.StatusOK, data)
+	var optionList string
+	for i := 0; i < len(data); i++ {
+		optionList = optionList + "<option>" + data[i].Name + "</option>"
+	}
+
+	return c.HTML(http.StatusOK, optionList)
 }
 
 func (a *App) setSettings(c echo.Context) (err error) {
@@ -271,6 +269,30 @@ func main() {
 	e.Static("/", "dist")
 
 	e.Logger.Fatal(e.Start(":3000"))
+
+	os.Remove("db/sqlite-database.db")
+	fmt.Println("-----------Removed sqlite-database.db...---------")
+
+	fmt.Println("Creating sqlite-database.db...")
+	file, err := os.Create("db/sqlite-database.db")
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	file.Close()
+
+	sqliteDatabase, _ := sql.Open("sqlite3", "./db/sqlite-database.db")
+	defer sqliteDatabase.Close()
+	createTable(sqliteDatabase)
+
+	insertStudent(sqliteDatabase, "0001", "Liana Kim", "Bachelor")
+	insertStudent(sqliteDatabase, "0002", "Glen Rangel", "Bachelor")
+	insertStudent(sqliteDatabase, "0003", "Martin Martins", "Master")
+	insertStudent(sqliteDatabase, "0004", "Alayna Armitage", "PHD")
+	insertStudent(sqliteDatabase, "0005", "Marni Benson", "Bachelor")
+	insertStudent(sqliteDatabase, "0006", "Derrick Griffiths", "Master")
+	insertStudent(sqliteDatabase, "0007", "Leigh Daly", "Bachelor")
+	insertStudent(sqliteDatabase, "0008", "Marni Benson", "PHD")
+	insertStudent(sqliteDatabase, "0009", "Klay Correa", "Bachelor")
 }
 
 func createTable(db *sql.DB) {
@@ -305,23 +327,28 @@ func insertStudent(db *sql.DB, code string, name string, program string) {
 	}
 }
 
-func getStudents(db *sql.DB) string {
+func getStudents(db *sql.DB) []Student {
 	row, err := db.Query("SELECT * FROM student ORDER BY name")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer row.Close()
-	var optionList string
 	for row.Next() {
 		var id int
 		var code string
 		var name string
 		var program string
 		row.Scan(&id, &code, &name, &program)
-		optionList = optionList + "<option>" + name + "</option>"
+		var student = Student{
+			Id:      id,
+			Code:    code,
+			Name:    name,
+			Program: program,
+		}
+		students = append(students, student)
 		log.Println("Student: ", code, " ", name, " ", program)
 	}
-	return optionList
+	return students
 }
 
 func HtmxMiddleware(next echo.HandlerFunc) echo.HandlerFunc {

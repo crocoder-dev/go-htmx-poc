@@ -2,7 +2,9 @@
   {{ if .Boosted }}
     {{ template "head" . }}
   {{ end }}
-  {{template "contact-dashboard" .}}
+  <div class="w-screen flex pt-6 justify-center items-center flex-col">
+    {{template "contact-dashboard" .}}
+  </div>
 {{ end }}
 
 

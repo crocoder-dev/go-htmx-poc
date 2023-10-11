@@ -3,20 +3,37 @@
     {{ template "head" . }}
   {{ end }}
   <div class="w-screen flex justify-center items-center flex-wrap">
-    <div class="flex flex-col items-center p-2">
-      <div class="flex flex-col items-center justify-center p-4 text-7xl rounded-lg bg-slate-500">{{ .LineAvg }}<span class="text-2xl">LINE AVG</span></div>
+    <div class="w-[50%] flex flex-col items-center p-2">
+      <div class="flex flex-col items-center justify-center w-full text-white p-4 text-6xl rounded-lg bg-slate-500">{{ .LineAvg }}<span class="text-2xl">LINE AVG</span></div>
       <div>
         {{ .LineChart }}
       </div>
     </div>
-    <div class="flex flex-col items-center p-2">
-      <div class="flex flex-col items-center justify-center p-4 text-7xl rounded-lg bg-slate-500">{{ .BarsAvg }}<span class="text-2xl">BARS AVG</span></div>
+    <div class="w-[50%] flex flex-col items-center p-2">
+      <div class="flex flex-col items-center justify-center w-full text-white p-4 text-6xl rounded-lg bg-slate-500">{{ .BarsAvg }}<span class="text-2xl">BARS AVG</span></div>
       <div>
         {{ .BarsChart }}
       </div>
     </div>
   </div>
-  {{template "contact-dashboard" .}}
+  <div class="w-screen flex justify-center items-center gap-2 flex-wrap">
+    {{template "contact-dashboard" .}}
+    <div class="flex gap-1 flex-wrap w-96" >
+      <div class="w-full">
+        <form class="flex flex-col gap-1" action="/InsertStudent" hx-target="#students">
+          <input class="block w-full rounded-md border-2 py-1.5 px-1.5 text-gray-900 shadow-sm" type="text" name="code" placeholder="Insert studnet code...">
+          <input class="block w-full rounded-md border-2 py-1.5 px-1.5 text-gray-900 shadow-sm" type="text" name="name" placeholder="Insert studnet name...">
+          <input class="block w-full rounded-md border-2 py-1.5 px-1.5 text-gray-900 shadow-sm" type="text" name="program" placeholder="Insert studnet program...">
+          <button class="w-full rounded-md  py-1.5 bg-slate-500 text-white" type="submit">Insert</button>
+        </form>
+      </div>
+      <div class="flex gap-1 flex-wrap w-96" id="students">
+        {{range .Students}}
+          <p class="p-1 mb-1 bg-slate-400 text-white rounded-sm">{{.Name}}</p>
+        {{end}}
+      </div>
+    </div>
+  </div>
 {{ end }}
 
 
