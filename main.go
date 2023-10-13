@@ -266,6 +266,7 @@ func main() {
 	e.POST("/submit", app.Submit)
 	e.POST("/setSettings", app.setSettings)
 	e.GET("/getData", app.getData)
+	e.POST("/InsertStudent", app.InsertStudent)
 	e.Static("/", "dist")
 
 	e.Logger.Fatal(e.Start(":3000"))
@@ -325,6 +326,28 @@ func insertStudent(db *sql.DB, code string, name string, program string) {
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
+}
+
+func (a *App) InsertStudent(c echo.Context) error {
+	code := c.FormValue("code")
+	name := c.FormValue("name")
+	program := c.FormValue("program")
+
+	sqliteDatabase, _ := sql.Open("sqlite3", "./db/sqlite-database.db")
+	defer sqliteDatabase.Close()
+
+	insertStudentSQL := `INSERT INTO student(code, name, program) VALUES (?, ?, ?)`
+	statement, err := sqliteDatabase.Prepare(insertStudentSQL)
+
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	_, err = statement.Exec(code, name, program)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	html := "<p class='p-1 mb-1 bg-slate-400 text-white rounded-sm'>" + name + "</p>"
+	return c.HTML(http.StatusOK, html)
 }
 
 func getStudents(db *sql.DB) []Student {
