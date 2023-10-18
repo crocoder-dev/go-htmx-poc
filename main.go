@@ -116,6 +116,30 @@ func (a *App) Fetch(c echo.Context) error {
 	r := c.Request()
 	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
 
+	os.Remove("db/sqlite-database.db")
+	fmt.Println("-----------Removed sqlite-database.db...---------")
+
+	fmt.Println("Creating sqlite-database.db...")
+	file, err := os.Create("db/sqlite-database.db")
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	file.Close()
+
+	sqliteDatabase, _ := sql.Open("sqlite3", "./db/sqlite-database.db")
+	defer sqliteDatabase.Close()
+	createTable(sqliteDatabase)
+
+	insertStudent(sqliteDatabase, "0001", "Liana Kim", "Bachelor")
+	insertStudent(sqliteDatabase, "0002", "Glen Rangel", "Bachelor")
+	insertStudent(sqliteDatabase, "0003", "Martin Martins", "Master")
+	insertStudent(sqliteDatabase, "0004", "Alayna Armitage", "PHD")
+	insertStudent(sqliteDatabase, "0005", "Marni Benson", "Bachelor")
+	insertStudent(sqliteDatabase, "0006", "Derrick Griffiths", "Master")
+	insertStudent(sqliteDatabase, "0007", "Leigh Daly", "Bachelor")
+	insertStudent(sqliteDatabase, "0008", "Marni Benson", "PHD")
+	insertStudent(sqliteDatabase, "0009", "Klay Correa", "Bachelor")
+
 	page := Page{Title: "Fetch", Boosted: h.HxBoosted}
 
 	if page.Boosted {
@@ -172,8 +196,29 @@ func (a *App) Dashboard(c echo.Context) error {
 	r := c.Request()
 	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
 
+	os.Remove("db/sqlite-database.db")
+	fmt.Println("-----------Removed sqlite-database.db...---------")
+
+	fmt.Println("Creating sqlite-database.db...")
+	file, err := os.Create("db/sqlite-database.db")
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	file.Close()
+
 	sqliteDatabase, _ := sql.Open("sqlite3", "./db/sqlite-database.db")
 	defer sqliteDatabase.Close()
+	createTable(sqliteDatabase)
+
+	insertStudent(sqliteDatabase, "0001", "Liana Kim", "Bachelor")
+	insertStudent(sqliteDatabase, "0002", "Glen Rangel", "Bachelor")
+	insertStudent(sqliteDatabase, "0003", "Martin Martins", "Master")
+	insertStudent(sqliteDatabase, "0004", "Alayna Armitage", "PHD")
+	insertStudent(sqliteDatabase, "0005", "Marni Benson", "Bachelor")
+	insertStudent(sqliteDatabase, "0006", "Derrick Griffiths", "Master")
+	insertStudent(sqliteDatabase, "0007", "Leigh Daly", "Bachelor")
+	insertStudent(sqliteDatabase, "0008", "Marni Benson", "PHD")
+	insertStudent(sqliteDatabase, "0009", "Klay Correa", "Bachelor")
 
 	var data = getStudents(sqliteDatabase)
 
@@ -270,30 +315,6 @@ func main() {
 	e.Static("/", "dist")
 
 	e.Logger.Fatal(e.Start(":3000"))
-
-	os.Remove("db/sqlite-database.db")
-	fmt.Println("-----------Removed sqlite-database.db...---------")
-
-	fmt.Println("Creating sqlite-database.db...")
-	file, err := os.Create("db/sqlite-database.db")
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	file.Close()
-
-	sqliteDatabase, _ := sql.Open("sqlite3", "./db/sqlite-database.db")
-	defer sqliteDatabase.Close()
-	createTable(sqliteDatabase)
-
-	insertStudent(sqliteDatabase, "0001", "Liana Kim", "Bachelor")
-	insertStudent(sqliteDatabase, "0002", "Glen Rangel", "Bachelor")
-	insertStudent(sqliteDatabase, "0003", "Martin Martins", "Master")
-	insertStudent(sqliteDatabase, "0004", "Alayna Armitage", "PHD")
-	insertStudent(sqliteDatabase, "0005", "Marni Benson", "Bachelor")
-	insertStudent(sqliteDatabase, "0006", "Derrick Griffiths", "Master")
-	insertStudent(sqliteDatabase, "0007", "Leigh Daly", "Bachelor")
-	insertStudent(sqliteDatabase, "0008", "Marni Benson", "PHD")
-	insertStudent(sqliteDatabase, "0009", "Klay Correa", "Bachelor")
 }
 
 func createTable(db *sql.DB) {
