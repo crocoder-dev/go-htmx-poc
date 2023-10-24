@@ -13,6 +13,29 @@
     {{ template "nav" . }}
     <main>
       {{ template "index" . }}
+      <div id="sign-in"></div>
     </main>
+        <script>
+  // Get this URL and Publishable Key from the Clerk Dashboard
+  const clerkFrontendApi = "pk_test_b25lLXJheS04LmNsZXJrLmFjY291bnRzLmRldiQ";
+  const frontendApi = 'one-ray-8.accounts.dev';
+  const version = '@latest'; // Set to appropriate version
+ 
+  // Creates asynchronous script
+  const script = document.createElement('script');
+  script.setAttribute('data-clerk-frontend-api', frontendApi);
+  script.setAttribute('data-clerk-publishable-key', clerkFrontendApi);
+  script.async = true;
+  script.src = `https://${frontendApi}/npm/@clerk/clerk-js${version}/dist/clerk.browser.js`;
+ 
+  // Adds listener to initialize ClerkJS after it's loaded
+  script.addEventListener('load', async function () {
+    await window.Clerk.load({
+      // Set load options here...
+    });
+  });
+  document.body.appendChild(script);
+</script>
+
   </body>
 </html>
