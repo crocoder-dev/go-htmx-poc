@@ -11,7 +11,7 @@ start:
 .PHONY: local
 
 air:
-	air -c .air.toml
+	/home/luka/go/bin/air -c .air.toml
 .PHONY: air
 
 tailwind-build:
