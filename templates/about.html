@@ -10,9 +10,14 @@
 <html lang="en">
   {{ template "head" . }}
   <body hx-ext="head-support">
-    {{ template "nav" . }}
-    <main>
+    <div class="hidden" id="header">
+      {{ template "nav" . }}
+      <div id="user-button"></div>
+      <hr />
+    </div>
+    <main class="hidden" id="main-content">
       {{ template "about" . }}
     </main>
+    {{ template "script" .}}
   </body>
 </html>

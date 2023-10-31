@@ -11,15 +11,7 @@
   {{ template "head" . }}
   <body hx-ext="head-support">
     <div class="hidden" id="header">
-      <nav hx-boost="true" hx-target="main" hx-swap="innerHTML">
-        <a href="/">Home</a>
-        <a href="/about">About</a>
-        <a href="/contact">Contact</a>
-        <a href="/chart">Chart</a>
-        <a href="/settings">Settings</a>
-        <a href="/fetch">Fetch</a>
-        <a href="/dashboard">Dashboard</a>
-      </nav>
+      {{ template "nav" . }}
       <div id="user-button"></div>
       <hr />
     </div>
@@ -27,42 +19,6 @@
       {{ template "index" . }}
       <div id="sign-in"></div>
     </main>
-    <script type="module">
-      const nav = document.querySelector('#header');
-      const main = document.querySelector('#main-content');
-
-      nav.style.display = 'none';
-      main.style.display = 'none';
-      // Get this URL and Publishable Key from the Clerk Dashboard
-      const clerkFrontendApi = "pk_test_b25lLXJheS04LmNsZXJrLmFjY291bnRzLmRldiQ";
-      const frontendApi = "one-ray-8.accounts.dev";
-      const version = "@latest"; // Set to appropriate version
-
-      // Creates asynchronous script
-      const script = document.createElement("script");
-      script.setAttribute("data-clerk-frontend-api", frontendApi);
-      script.setAttribute("data-clerk-publishable-key", clerkFrontendApi);
-      script.async = true;
-      script.src = `https://${frontendApi}/npm/@clerk/clerk-js${version}/dist/clerk.browser.js`;
-
-      // Adds listener to initialize ClerkJS after it's loaded
-      script.addEventListener("load", async function () {
-        await window.Clerk.load();
-
-        Clerk.addListener(({ user }) => {
-          nav.style.display = user ? "block" : "none";
-          main.style.display = user ? "block" : "none";
-        });
-
-        if (Clerk.user) {
-          const userButtonComponent = document.querySelector('#user-button');
-          console.log('button',userButtonComponent)
-          window.Clerk.mountUserButton(userButtonComponent);
-        } else {
-          window.Clerk.openSignIn({close: false});
-        }
-      });
-      document.body.appendChild(script);
-    </script>
+    {{ template "script" .}}
   </body>
 </html>
