@@ -58,6 +58,8 @@ type ApiResponse struct {
 	Completed bool   `json:"completed"`
 }
 
+var isAuthenticated bool = false
+
 var settingsGlobal SettingsGlobal
 
 func (a *App) Index(c echo.Context) error {
@@ -112,6 +114,19 @@ func (a *App) Settings(c echo.Context) error {
 	return c.Render(http.StatusOK, "settings.html", &page)
 }
 
+func (a *App) SignIn(c echo.Context) error {
+	r := c.Request()
+	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
+
+	page := Page{Title: "Sign In", Boosted: h.HxBoosted}
+
+	if page.Boosted {
+		return c.Render(http.StatusOK, "SignIn", &page)
+	}
+
+	return c.Render(http.StatusOK, "signin.html", &page)
+}
+
 func (a *App) Fetch(c echo.Context) error {
 	r := c.Request()
 	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
@@ -151,6 +166,17 @@ func (a *App) Fetch(c echo.Context) error {
 
 func (a *App) Test(c echo.Context) error {
 	return c.Render(http.StatusOK, "test", Page{Title: "Test"})
+}
+
+func (a *App) CheckLogin(c echo.Context) (err error) {
+	var data struct {
+		IsLoggedIn bool `json:"isLoggedIn"`
+	}
+	if err := c.Bind(&data); err != nil {
+		return err
+	}
+	isAuthenticated = data.IsLoggedIn
+	return c.String(http.StatusOK, "User authenticated")
 }
 
 func (a *App) Submit(c echo.Context) (err error) {
@@ -299,15 +325,17 @@ func main() {
 
 	e.Renderer = app.appTemplates
 
-	e.GET("/", app.Index)
-	e.GET("/about", app.About)
-	e.GET("/contact", app.Contact)
-	e.GET("/settings", app.Settings)
-	e.GET("/test", app.Test)
-	e.GET("/chart", app.Chart)
-	e.GET("/fetch", app.Fetch)
-	e.GET("/dashboard", app.Dashboard)
+	e.GET("/", AuthMiddleware(app.Index))
+	e.GET("/about", AuthMiddleware(app.About))
+	e.GET("/contact", AuthMiddleware(app.Contact))
+	e.GET("/settings", AuthMiddleware(app.Settings))
+	e.GET("/test", AuthMiddleware(app.Test))
+	e.GET("/chart", AuthMiddleware(app.Chart))
+	e.GET("/fetch", AuthMiddleware(app.Fetch))
+	e.GET("/dashboard", AuthMiddleware(app.Dashboard))
+	e.GET("/signin", app.SignIn)
 
+	e.POST("/checkLogin", app.CheckLogin)
 	e.POST("/submit", app.Submit)
 	e.POST("/setSettings", app.setSettings)
 	e.GET("/getData", app.getData)
@@ -393,6 +421,15 @@ func getStudents(db *sql.DB) []Student {
 		log.Println("Student: ", code, " ", name, " ", program)
 	}
 	return students
+}
+
+func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		if !isAuthenticated {
+			return c.Redirect(http.StatusFound, "/signin")
+		}
+		return next(c)
+	}
 }
 
 func HtmxMiddleware(next echo.HandlerFunc) echo.HandlerFunc {

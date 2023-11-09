@@ -11,12 +11,12 @@
 <html lang="en">
   {{ template "head" . }}
   <body hx-ext="head-support">
-    <div class="hidden" id="header">
+    <div id="header">
       {{ template "nav" . }}
       <div id="user-button"></div>
       <hr />
     </div>
-    <main class="hidden" id="main-content">
+    <main id="main-content">
       {{ template "chart" . }}
     </main>
     {{ template "script" .}}

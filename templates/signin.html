@@ -1,0 +1,45 @@
+{{ define "signin" }}
+  {{ if .Boosted }}
+    {{ template "head" . }}
+  {{ end }}
+  <div class="w-screen flex flex-col pt-6 justify-center items-center">
+    <div id="signin"></div>
+  </div>
+{{ end }}
+
+
+<!doctype html>
+<html lang="en">
+  {{ template "head" . }}
+  <body hx-ext="head-support">
+    <main id="main-content">
+      {{ template "signin" . }}
+    </main>
+    {{ template "script" .}}
+    <script type="module">
+      const script = document.createElement("script");
+      script.async = true;
+
+      const signInDiv = document.getElementById('signin');
+  
+      window.addEventListener("load", async function () {
+        await window.Clerk.load();
+  
+        if (Clerk.user) {
+          document.location.href="/";
+        } else {
+          window.Clerk.mountSignIn(signInDiv);
+        }
+  
+        Clerk.addListener(({ user }) => {
+          if (user) {
+            document.location.href="/";
+          } else {console.log('render')
+            window.Clerk.mountSignIn(signInDiv);
+          }
+        });
+      });
+      document.body.appendChild(script);
+    </script>
+  </body>
+</html>
