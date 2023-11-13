@@ -12,7 +12,9 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/clerkinc/clerk-sdk-go/clerk"
 	"github.com/donseba/go-htmx"
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	_ "github.com/mattn/go-sqlite3"
@@ -319,20 +321,24 @@ func main() {
 		appTemplates: new(Template),
 	}
 
+	if err := godotenv.Load(); err != nil {
+		log.Print("No .env file found")
+	}
+
 	app.appTemplates.Init()
 	app.appTemplates.Add("templates/*.html")
 	app.appTemplates.Add("templates/*/*.html")
 
 	e.Renderer = app.appTemplates
 
-	e.GET("/", AuthMiddleware(app.Index))
-	e.GET("/about", AuthMiddleware(app.About))
-	e.GET("/contact", AuthMiddleware(app.Contact))
-	e.GET("/settings", AuthMiddleware(app.Settings))
-	e.GET("/test", AuthMiddleware(app.Test))
-	e.GET("/chart", AuthMiddleware(app.Chart))
-	e.GET("/fetch", AuthMiddleware(app.Fetch))
-	e.GET("/dashboard", AuthMiddleware(app.Dashboard))
+	e.GET("/", ClerkAuthMiddleware(app.Index))
+	e.GET("/about", ClerkAuthMiddleware(app.About))
+	e.GET("/contact", ClerkAuthMiddleware(app.Contact))
+	e.GET("/settings", ClerkAuthMiddleware(app.Settings))
+	e.GET("/test", ClerkAuthMiddleware(app.Test))
+	e.GET("/chart", ClerkAuthMiddleware(app.Chart))
+	e.GET("/fetch", ClerkAuthMiddleware(app.Fetch))
+	e.GET("/dashboard", ClerkAuthMiddleware(app.Dashboard))
 	e.GET("/signin", app.SignIn)
 
 	e.POST("/checkLogin", app.CheckLogin)
@@ -423,11 +429,34 @@ func getStudents(db *sql.DB) []Student {
 	return students
 }
 
-func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+func ClerkAuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		if !isAuthenticated {
+
+		clerkSecretKey, exists := os.LookupEnv("CLERK_SECRET_KEY")
+
+		if exists {
+			fmt.Println("env fetched")
+		}
+
+		client, err := clerk.NewClient(clerkSecretKey)
+		if err != nil {
+			return err
+		}
+
+		ctx := c.Request().Context()
+
+		sessClaims, ok := clerk.SessionFromContext(ctx)
+		if !ok {
+			fmt.Println("Clerk error")
+		}
+
+		user, err := client.Users().Read(sessClaims.Claims.Subject)
+
+		if err != nil {
 			return c.Redirect(http.StatusFound, "/signin")
 		}
+		fmt.Println("Hello ", user.FirstName)
+
 		return next(c)
 	}
 }
