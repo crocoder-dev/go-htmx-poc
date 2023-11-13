@@ -41,9 +41,14 @@
 <html lang="en">
   {{ template "head" . }}
   <body hx-ext="head-support">
-    {{ template "nav" . }}
-    <main>
+    <div id="header">
+      {{ template "nav" . }}
+      <div id="user-button"></div>
+      <hr />
+    </div>
+    <main id="main-content">
       {{ template "dashboard" . }}
     </main>
+    {{ template "script" .}}
   </body>
 </html>

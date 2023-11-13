@@ -12,7 +12,9 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/clerkinc/clerk-sdk-go/clerk"
 	"github.com/donseba/go-htmx"
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	_ "github.com/mattn/go-sqlite3"
@@ -57,6 +59,8 @@ type ApiResponse struct {
 	Title     string `json:"title"`
 	Completed bool   `json:"completed"`
 }
+
+var isAuthenticated bool = false
 
 var settingsGlobal SettingsGlobal
 
@@ -112,6 +116,19 @@ func (a *App) Settings(c echo.Context) error {
 	return c.Render(http.StatusOK, "settings.html", &page)
 }
 
+func (a *App) SignIn(c echo.Context) error {
+	r := c.Request()
+	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
+
+	page := Page{Title: "Sign In", Boosted: h.HxBoosted}
+
+	if page.Boosted {
+		return c.Render(http.StatusOK, "SignIn", &page)
+	}
+
+	return c.Render(http.StatusOK, "signin.html", &page)
+}
+
 func (a *App) Fetch(c echo.Context) error {
 	r := c.Request()
 	h := r.Context().Value(htmx.ContextRequestHeader).(htmx.HxRequestHeader)
@@ -151,6 +168,17 @@ func (a *App) Fetch(c echo.Context) error {
 
 func (a *App) Test(c echo.Context) error {
 	return c.Render(http.StatusOK, "test", Page{Title: "Test"})
+}
+
+func (a *App) CheckLogin(c echo.Context) (err error) {
+	var data struct {
+		IsLoggedIn bool `json:"isLoggedIn"`
+	}
+	if err := c.Bind(&data); err != nil {
+		return err
+	}
+	isAuthenticated = data.IsLoggedIn
+	return c.String(http.StatusOK, "User authenticated")
 }
 
 func (a *App) Submit(c echo.Context) (err error) {
@@ -293,21 +321,27 @@ func main() {
 		appTemplates: new(Template),
 	}
 
+	if err := godotenv.Load(); err != nil {
+		log.Print("No .env file found")
+	}
+
 	app.appTemplates.Init()
 	app.appTemplates.Add("templates/*.html")
 	app.appTemplates.Add("templates/*/*.html")
 
 	e.Renderer = app.appTemplates
 
-	e.GET("/", app.Index)
-	e.GET("/about", app.About)
-	e.GET("/contact", app.Contact)
-	e.GET("/settings", app.Settings)
-	e.GET("/test", app.Test)
-	e.GET("/chart", app.Chart)
-	e.GET("/fetch", app.Fetch)
-	e.GET("/dashboard", app.Dashboard)
+	e.GET("/", ClerkAuthMiddleware(app.Index))
+	e.GET("/about", ClerkAuthMiddleware(app.About))
+	e.GET("/contact", ClerkAuthMiddleware(app.Contact))
+	e.GET("/settings", ClerkAuthMiddleware(app.Settings))
+	e.GET("/test", ClerkAuthMiddleware(app.Test))
+	e.GET("/chart", ClerkAuthMiddleware(app.Chart))
+	e.GET("/fetch", ClerkAuthMiddleware(app.Fetch))
+	e.GET("/dashboard", ClerkAuthMiddleware(app.Dashboard))
+	e.GET("/signin", app.SignIn)
 
+	e.POST("/checkLogin", app.CheckLogin)
 	e.POST("/submit", app.Submit)
 	e.POST("/setSettings", app.setSettings)
 	e.GET("/getData", app.getData)
@@ -393,6 +427,38 @@ func getStudents(db *sql.DB) []Student {
 		log.Println("Student: ", code, " ", name, " ", program)
 	}
 	return students
+}
+
+func ClerkAuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		clerkSecretKey, exists := os.LookupEnv("CLERK_SECRET_KEY")
+
+		if exists {
+			fmt.Println("env fetched")
+		}
+
+		client, err := clerk.NewClient(clerkSecretKey)
+		if err != nil {
+			return err
+		}
+
+		ctx := c.Request().Context()
+
+		sessClaims, ok := clerk.SessionFromContext(ctx)
+		if !ok {
+			fmt.Println("Clerk error")
+		}
+
+		user, err := client.Users().Read(sessClaims.Claims.Subject)
+
+		if err != nil {
+			return c.Redirect(http.StatusFound, "/signin")
+		}
+		fmt.Println("Hello ", user.FirstName)
+
+		return next(c)
+	}
 }
 
 func HtmxMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
